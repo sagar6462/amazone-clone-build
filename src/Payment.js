@@ -29,11 +29,12 @@ function Payment() {
         //Stripe expects the total in a currencies subunits
         url: `/payments/create?total=${getBasketTotal(basket) * 100}`,
       });
-      setClientSecret(response.date.clientSecret);
+      setClientSecret(response.data.clientSecret);
     };
     getClientSecret();
   }, [basket]);
 
+  console.log("The secret is >>", clientSecret);
   const [succeeded, setSucceeded] = useState(false);
   const [processing, setProcessing] = useState("");
 
@@ -41,19 +42,22 @@ function Payment() {
     event.preventDefault();
     setProcessing(true);
 
-    const payLoad = await stripe.confirmCardPayment(clientSecret, {
-      payment_method: {
-        card: elements.getElement(CardElement),
-      },
-    }).then[
-      ({ paymentIntent }) => {
+    const payload = await stripe
+      .confirmCardPayment(clientSecret, {
+        payment_method: {
+          card: elements.getElement(CardElement),
+        },
+      })
+      .then(({ paymentIntent }) => {
         //paymentIntent = payment confirmation
         setSucceeded(true);
         setError(null);
         setProcessing(false);
-        history.replaceState("/orders");
-      }
-    ];
+        dispatch({
+          type: "EMPTY_BASKET",
+        });
+        history.replace("/orders");
+      });
   };
 
   const handleChange = (event) => {
